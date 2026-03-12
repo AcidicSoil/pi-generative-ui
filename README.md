@@ -6,7 +6,7 @@ Ask pi to "show me how compound interest works" and get a live interactive widge
 
 | | | |
 |:---:|:---:|:---:|
-| ![Dashboard](media/dashboard.gif) | ![Simulator](media/simulator.gif) | ![Diagram](media/diagram.gif) |
+| <img src="media/dashboard.gif" width="280"> | <img src="media/simulator.gif" width="280"> | <img src="media/diagram.gif" width="280"> |
 
 ## How it works
 
