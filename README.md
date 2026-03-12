@@ -4,9 +4,7 @@ Claude.ai's generative UI - reverse-engineered, rebuilt for [pi](https://github.
 
 Ask pi to "show me how compound interest works" and get a live interactive widget - sliders, charts, animations - rendered in a native macOS window. Not a screenshot. Not a code block. A real HTML application with JavaScript, streaming live as the LLM generates it.
 
-| | | |
-|:---:|:---:|:---:|
-| <img src="media/dashboard.gif" width="280"> | <img src="media/simulator.gif" width="280"> | <img src="media/diagram.gif" width="280"> |
+<img src="media/dashboard.gif" width="32%"> <img src="media/simulator.gif" width="32%"> <img src="media/diagram.gif" width="32%">
 
 ## How it works
 
