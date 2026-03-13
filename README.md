@@ -1,6 +1,6 @@
 # pi-generative-ui
 
-Claude.ai's generative UI - reverse-engineered, rebuilt for [pi](https://github.com/badlogic/pi).
+Claude.ai's generative UI - reverse-engineered, rebuilt for [pi](https://github.com/badlogic/pi-mono).
 
 Ask pi to "show me how compound interest works" and get a live interactive widget - sliders, charts, animations - rendered in a native macOS window. Not a screenshot. Not a code block. A real HTML application with JavaScript, streaming live as the LLM generates it.
 
@@ -114,7 +114,7 @@ The raw `read_me` responses are preserved in [`claude-guidelines/`](.pi/extensio
 
 ## Credits
 
-- [pi](https://github.com/badlogic/pi) - the extensible coding agent that makes this possible
+- [pi](https://github.com/badlogic/pi-mono) - the extensible coding agent that makes this possible
 - [Glimpse](https://github.com/hazat/glimpse) - native macOS WKWebView windows
 - [morphdom](https://github.com/patrick-steele-idem/morphdom) - DOM diffing for smooth streaming
 - Anthropic - for building the generative UI system we reverse-engineered
