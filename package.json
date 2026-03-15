@@ -1,11 +1,15 @@
 {
   "name": "pi-generative-ui",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Generative UI for pi — render interactive HTML/SVG widgets in native macOS windows via Glimpse",
   "type": "commonjs",
-  "keywords": ["pi-package"],
+  "keywords": [
+    "pi-package"
+  ],
   "pi": {
-    "extensions": [".pi/extensions/generative-ui"]
+    "extensions": [
+      ".pi/extensions/generative-ui"
+    ]
   },
   "dependencies": {
     "glimpseui": "^0.3.5"
@@ -16,7 +20,9 @@
     "@mariozechner/pi-tui": "*",
     "@sinclair/typebox": "*"
   },
-  "os": ["darwin"],
+  "os": [
+    "darwin"
+  ],
   "author": "michaelliv",
   "license": "MIT"
 }
