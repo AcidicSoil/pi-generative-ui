@@ -2,7 +2,7 @@
 
 Claude.ai's generative UI - reverse-engineered, rebuilt for [pi](https://github.com/badlogic/pi-mono).
 
-Ask pi to "show me how compound interest works" and get a live interactive widget - sliders, charts, animations - rendered in a native macOS window. Not a screenshot. Not a code block. A real HTML application with JavaScript, streaming live as the LLM generates it.
+Ask pi to "show me how compound interest works" and get a live interactive widget - sliders, charts, animations - rendered in a Glimpse window on macOS or Linux/WSL. Not a screenshot. Not a code block. A real HTML application with JavaScript, streaming live as the LLM generates it.
 
 <img src="media/dashboard.gif" width="32%"> <img src="media/simulator.gif" width="32%"> <img src="media/diagram.gif" width="32%">
 
@@ -14,11 +14,11 @@ This extension replicates that system for pi:
 
 1. **LLM calls `visualize_read_me`** - loads design guidelines (lazy, only the relevant modules)
 2. **LLM calls `show_widget`** - generates an HTML fragment as a tool call parameter
-3. **Extension intercepts the stream** - opens a native macOS window via [Glimpse](https://github.com/hazat/glimpse) and feeds partial HTML as tokens arrive
+3. **Extension intercepts the stream** - opens a [Glimpse](https://github.com/hazat/glimpse) window and feeds partial HTML as tokens arrive
 4. **[morphdom](https://github.com/patrick-steele-idem/morphdom) diffs the DOM** - new elements fade in smoothly, unchanged elements stay untouched
 5. **Scripts execute on completion** - Chart.js, D3, Three.js, anything from CDN
 
-The widget window has full browser capabilities (WKWebView) and a bidirectional bridge - `window.glimpse.send(data)` sends data back to the agent.
+The widget window has full browser capabilities and a bidirectional bridge - `window.glimpse.send(data)` sends data back to the agent. On macOS, Glimpse uses WKWebView; on Linux/WSL, it uses a supported browser backend such as Chromium or WebKitGTK.
 
 ## Install
 
@@ -26,14 +26,18 @@ The widget window has full browser capabilities (WKWebView) and a bidirectional 
 pi install git:github.com/Michaelliv/pi-generative-ui
 ```
 
-> macOS only. Requires Swift toolchain (ships with Xcode or Xcode Command Line Tools).
+> macOS and Linux/WSL are supported through Glimpse.
+>
+> **macOS:** uses WKWebView and requires the Swift toolchain (ships with Xcode or Xcode Command Line Tools).
+>
+> **WSL/Linux:** requires Node 18+, GUI support, and a Glimpse-supported browser backend. For WSL, use WSL2 with WSLg enabled; the extension defaults `GLIMPSE_BACKEND=chromium` on WSL unless you already set `GLIMPSE_BACKEND` yourself. A Chromium-based browser must be visible inside the Linux environment, or you can point Glimpse at one explicitly with `GLIMPSE_CHROME_PATH=/path/to/chrome`.
 
 ## Usage
 
 Just ask pi to visualize things. The extension adds two tools that the LLM calls automatically:
 
 - **"Show me how compound interest works"** → interactive explainer with sliders and Chart.js
-- **"Visualize the architecture of a transformer"** → SVG diagram with labeled components  
+- **"Visualize the architecture of a transformer"** → SVG diagram with labeled components
 - **"Create a dashboard for this data"** → metric cards, charts, tables
 - **"Draw a particle system"** → Canvas animation
 
@@ -51,13 +55,13 @@ We triggered `read_me` with each module combination, exported the conversation, 
 
 Five modules, loaded on demand:
 
-| Module | Size | What it covers |
-|---|---|---|
-| `interactive` | 19KB | Sliders, metric cards, live calculations |
-| `chart` | 22KB | Chart.js setup, custom legends, number formatting |
-| `mockup` | 19KB | UI component tokens, cards, forms, skeleton loading |
-| `art` | 17KB | SVG illustration, Canvas animation, creative patterns |
-| `diagram` | 59KB | Flowcharts, architecture diagrams, SVG arrow systems |
+| Module        | Size | What it covers                                        |
+| ------------- | ---- | ----------------------------------------------------- |
+| `interactive` | 19KB | Sliders, metric cards, live calculations              |
+| `chart`       | 22KB | Chart.js setup, custom legends, number formatting     |
+| `mockup`      | 19KB | UI component tokens, cards, forms, skeleton loading   |
+| `art`         | 17KB | SVG illustration, Canvas animation, creative patterns |
+| `diagram`     | 59KB | Flowcharts, architecture diagrams, SVG arrow systems  |
 
 ### Streaming architecture
 
@@ -71,17 +75,18 @@ execute()         → reuse window, wait for interaction or close
 ```
 
 Key details:
+
 - **Shell HTML + JS eval** - window opens with an empty shell; content injected via `win.send()`, not `setHTML()`, to avoid full-page flashes
 - **morphdom DOM diffing** - only changed nodes update; new nodes get a 0.3s fade-in animation
 - **pi-ai's `parseStreamingJson`** - no need for a partial JSON parser; pi already provides parsed `arguments` on every delta
 - **150ms debounce** - batches rapid token updates for smooth visual rendering
-- **Dark mode by default** - `#1a1a1a` background, designed for macOS WKWebView
+- **Dark mode by default** - `#1a1a1a` background, tuned for Glimpse's browser-backed rendering
 
 ### Glimpse
 
-[Glimpse](https://github.com/hazat/glimpse) is a native macOS micro-UI library. It opens a WKWebView window in under 50ms via a tiny Swift binary. No Electron, no browser tab, no runtime dependencies beyond the system WebKit.
+[Glimpse](https://github.com/hazat/glimpse) is the renderer used by this extension. On macOS it opens a WKWebView window; on Linux/WSL it can use supported browser backends such as Chromium or WebKitGTK, depending on your environment.
 
-The Swift source compiles automatically on `npm install` via `postinstall`.
+On macOS, the Swift source compiles automatically on `npm install` via `postinstall`. On Linux/WSL, make sure the selected backend is available from inside the Linux environment before running widgets.
 
 ## Project structure
 
@@ -115,7 +120,7 @@ The raw `read_me` responses are preserved in [`claude-guidelines/`](.pi/extensio
 ## Credits
 
 - [pi](https://github.com/badlogic/pi-mono) - the extensible coding agent that makes this possible
-- [Glimpse](https://github.com/hazat/glimpse) - native macOS WKWebView windows
+- [Glimpse](https://github.com/hazat/glimpse) - cross-platform browser-backed windows for streamed widgets
 - [morphdom](https://github.com/patrick-steele-idem/morphdom) - DOM diffing for smooth streaming
 - Anthropic - for building the generative UI system we reverse-engineered
 
