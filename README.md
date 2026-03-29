@@ -32,6 +32,69 @@ pi install git:github.com/Michaelliv/pi-generative-ui
 >
 > **WSL/Linux:** requires Node 18+, GUI support, and a Glimpse-supported browser backend. For WSL, use WSL2 with WSLg enabled; the extension defaults `GLIMPSE_BACKEND=chromium` on WSL unless you already set `GLIMPSE_BACKEND` yourself. A Chromium-based browser must be visible inside the Linux environment, or you can point Glimpse at one explicitly with `GLIMPSE_CHROME_PATH=/path/to/chrome`.
 
+## Running in WSL
+
+Use the extension from inside your WSL Linux environment, not from Windows PowerShell.
+
+### Requirements
+
+- WSL2
+- WSLg enabled so Linux GUI apps can open windows
+- Node.js 18+
+- pi installed in the Linux environment
+- a Chromium-based browser visible from Linux (for example `chromium`, `google-chrome`, or another compatible executable)
+
+### Install inside WSL
+
+```bash
+npm install
+pi install git:github.com/Michaelliv/pi-generative-ui
+```
+
+### Browser backend on WSL
+
+On WSL, the extension defaults `GLIMPSE_BACKEND=chromium` if you have not already set `GLIMPSE_BACKEND` yourself.
+
+In the common case, you do not need to set anything manually as long as a Chromium-based browser is available in the Linux environment.
+
+If Glimpse cannot find a browser automatically, point it at one explicitly:
+
+```bash
+export GLIMPSE_CHROME_PATH=/usr/bin/chromium
+```
+
+If you need to override the backend yourself, set it before starting pi:
+
+```bash
+export GLIMPSE_BACKEND=chromium
+```
+
+### Quick checks
+
+Confirm you are running in WSL and that Linux can see a browser:
+
+```bash
+uname -a
+which chromium || which google-chrome || which google-chrome-stable
+node --version
+```
+
+### Smoke test
+
+Start pi in WSL and ask for a simple widget such as:
+
+- `Show me how compound interest works`
+- `Visualize the architecture of a transformer`
+
+A separate Glimpse window should open through WSLg.
+
+### Common issues
+
+- **No window opens:** verify WSLg is working and you launched pi from the WSL Linux shell.
+- **Backend error mentioning Chromium/Chrome not found:** install a Linux-visible Chromium-based browser or set `GLIMPSE_CHROME_PATH`.
+- **You already set `GLIMPSE_BACKEND`:** the extension will not override your existing value.
+- **Widgets still fail after setup:** restart the pi session after changing backend-related environment variables.
+
 ## Usage
 
 Just ask pi to visualize things. The extension adds two tools that the LLM calls automatically:
