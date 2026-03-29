@@ -44,44 +44,72 @@ Use the extension from inside your WSL Linux environment, not from Windows Power
 - pi installed in the Linux environment
 - a Chromium-based browser visible from Linux (for example `chromium`, `google-chrome`, or another compatible executable)
 
-### Install inside WSL
+### Setup inside WSL
+
+Verify the basics first:
 
 ```bash
-npm install
-pi install git:github.com/Michaelliv/pi-generative-ui
+uname -a
+node --version
+which chromium || which google-chrome || which google-chrome-stable
 ```
 
-### Browser backend on WSL
-
-On WSL, the extension defaults `GLIMPSE_BACKEND=chromium` if you have not already set `GLIMPSE_BACKEND` yourself.
-
-In the common case, you do not need to set anything manually as long as a Chromium-based browser is available in the Linux environment.
-
-If Glimpse cannot find a browser automatically, point it at one explicitly:
+If browser auto-detection fails later, you can point Glimpse at a specific executable:
 
 ```bash
 export GLIMPSE_CHROME_PATH=/usr/bin/chromium
 ```
 
-If you need to override the backend yourself, set it before starting pi:
+### Install inside WSL
+
+From the project directory in WSL:
+
+```bash
+npm install
+```
+
+Install the extension in pi:
+
+```bash
+pi install git:github.com/Michaelliv/pi-generative-ui
+```
+
+### Backend setup on WSL
+
+The extension defaults to Chromium on WSL when `GLIMPSE_BACKEND` is not already set.
+
+To force that behavior explicitly in your current shell, run:
 
 ```bash
 export GLIMPSE_BACKEND=chromium
 ```
 
-### Quick checks
-
-Confirm you are running in WSL and that Linux can see a browser:
+If you want that to persist across shells, add it to your shell profile:
 
 ```bash
-uname -a
-which chromium || which google-chrome || which google-chrome-stable
-node --version
+echo 'export GLIMPSE_BACKEND=chromium' >> ~/.bashrc
 ```
 
-### Smoke test
+### Test in WSL
 
-Start pi in WSL and ask for a simple widget such as:
+Run the repo checks from WSL:
+
+```bash
+npm test
+```
+
+If you changed environment variables such as `GLIMPSE_BACKEND` or `GLIMPSE_CHROME_PATH`, restart your shell or re-source your profile before testing.
+
+### Run in WSL
+
+Start pi from the WSL shell after exporting any backend variables you want:
+
+```bash
+export GLIMPSE_BACKEND=chromium
+pi
+```
+
+Then ask for a simple widget such as:
 
 - `Show me how compound interest works`
 - `Visualize the architecture of a transformer`
@@ -90,9 +118,10 @@ A separate Glimpse window should open through WSLg.
 
 ### Common issues
 
-- **No window opens:** verify WSLg is working and you launched pi from the WSL Linux shell.
+- **No window opens:** verify WSLg is working and that you launched `pi` from the WSL Linux shell.
 - **Backend error mentioning Chromium/Chrome not found:** install a Linux-visible Chromium-based browser or set `GLIMPSE_CHROME_PATH`.
 - **You already set `GLIMPSE_BACKEND`:** the extension will not override your existing value.
+- **`npm test` passes but widgets still fail:** the static checks passed, but the Glimpse runtime still needs a working WSLg GUI path and browser backend.
 - **Widgets still fail after setup:** restart the pi session after changing backend-related environment variables.
 
 ## Usage
