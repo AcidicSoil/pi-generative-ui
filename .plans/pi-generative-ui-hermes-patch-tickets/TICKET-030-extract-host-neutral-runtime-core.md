@@ -2,7 +2,7 @@
 ticket_id: "tkt_wsl_hermes_030_extract_runtime_core"
 title: "Widget runtime is extracted into a host-neutral TypeScript core"
 agent: "codex"
-done: false
+done: true
 goal: "The existing Pi-based widget engine runs from a TypeScript core package with no Pi-specific or Hermes-specific bindings."
 ---
 

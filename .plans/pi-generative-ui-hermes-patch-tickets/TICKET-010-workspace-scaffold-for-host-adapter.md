@@ -2,7 +2,7 @@
 ticket_id: "tkt_wsl_hermes_010_workspace_scaffold"
 title: "Workspace scaffolding reflects the host-adapter package boundaries"
 agent: "codex"
-done: false
+done: true
 goal: "The repository contains the package and test layout needed for a TypeScript runtime core, MCP sidecar, Pi compatibility adapter, and Hermes plugin without rewriting the renderer."
 ---
 

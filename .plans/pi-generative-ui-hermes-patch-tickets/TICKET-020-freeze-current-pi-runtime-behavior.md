@@ -2,7 +2,7 @@
 ticket_id: "tkt_wsl_hermes_020_freeze_pi_behavior"
 title: "Current Pi runtime behavior is frozen behind golden fixtures and regression tests"
 agent: "codex"
-done: false
+done: true
 goal: "The existing WSL-working Pi fork has regression coverage for the behaviors that must survive the Hermes integration."
 ---
 

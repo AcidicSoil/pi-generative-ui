@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": ".tmp-tests",
+    "rootDir": ".",
+    "declaration": false,
+    "sourceMap": false
+  },
+  "include": [
+    ".pi/extensions/generative-ui/*.ts",
+    "packages/*/src/**/*.ts",
+    "tests/**/*.ts"
+  ]
+}

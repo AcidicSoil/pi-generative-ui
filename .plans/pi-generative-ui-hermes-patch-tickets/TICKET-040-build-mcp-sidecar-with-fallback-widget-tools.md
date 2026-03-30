@@ -2,7 +2,7 @@
 ticket_id: "tkt_wsl_hermes_040_build_sidecar_fallback"
 title: "TypeScript sidecar owns widget sessions and exposes fallback MCP widget tools"
 agent: "codex"
-done: false
+done: true
 goal: "A TypeScript sidecar wraps the runtime core, owns all window state, and provides the no-core-patch MCP tool surface needed for Hermes integration."
 ---
 

@@ -3,6 +3,10 @@
   "version": "0.2.1",
   "description": "Generative UI for pi — render interactive HTML/SVG widgets in Glimpse-rendered windows across macOS and Linux/WSL",
   "type": "commonjs",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "keywords": [
     "pi-package"
   ],
@@ -12,11 +16,13 @@
     ]
   },
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json",
-    "format": "prettier --write README.md package.json .pi/extensions/generative-ui/*.ts",
-    "format:check": "prettier --check README.md package.json .pi/extensions/generative-ui/*.ts",
-    "lint": "npm run typecheck && npm run format:check",
-    "test": "npm run lint"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test:compile": "tsc -p tsconfig.tests.json",
+    "test:run": "node --test .tmp-tests/tests/unit/*.test.js .tmp-tests/tests/integration/*.test.js",
+    "test": "npm run typecheck && npm run test:compile && npm run test:run",
+    "format": "prettier --write README.md package.json tsconfig.json tsconfig.tests.json .pi/extensions/generative-ui/*.ts packages/*/src/**/*.ts tests/**/*.ts",
+    "format:check": "prettier --check README.md package.json tsconfig.json tsconfig.tests.json .pi/extensions/generative-ui/*.ts packages/*/src/**/*.ts tests/**/*.ts",
+    "lint": "npm run typecheck && npm run format:check"
   },
   "dependencies": {
     "glimpseui": "^0.6.2"

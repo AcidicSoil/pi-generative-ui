@@ -1,0 +1,9 @@
+{
+  "name": "streaming-show-widget",
+  "expectations": {
+    "opensShellEarly": true,
+    "usesSetContentForPatches": true,
+    "runsScriptsOnFinalize": true,
+    "debounceMs": 150
+  }
+}
