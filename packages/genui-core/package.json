@@ -1,5 +1,5 @@
 {
-  "name": "@pi-generative-ui/pi-compat",
+  "name": "@pi-generative-ui/genui-core",
   "private": true,
   "type": "module"
 }

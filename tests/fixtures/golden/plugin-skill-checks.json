@@ -1,0 +1,10 @@
+{
+  "mustMention": [
+    "visualize_read_me",
+    "open_widget",
+    "patch_widget",
+    "close_widget",
+    "window.glimpse.send",
+    "<svg>"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "tools": [
+    "visualize_read_me",
+    "open_widget",
+    "patch_widget",
+    "close_widget",
+    "widget_event_poll"
+  ],
+  "resourcesExposed": false,
+  "promptsExposed": false
+}

@@ -1,24 +1,79 @@
 # pi-generative-ui
 
-Claude.ai's generative UI - reverse-engineered, rebuilt for [pi](https://github.com/badlogic/pi-mono).
+Claude.ai's generative UI, rebuilt for [pi](https://github.com/badlogic/pi-mono), with the original Pi streaming path preserved and a new sessionized Hermes-facing architecture extracted alongside it.
 
-Ask pi to "show me how compound interest works" and get a live interactive widget - sliders, charts, animations - rendered in a Glimpse window on macOS or Linux/WSL. Not a screenshot. Not a code block. A real HTML application with JavaScript, streaming live as the LLM generates it.
+Ask pi to "show me how compound interest works" and get a live interactive widget - sliders, charts, animations - rendered in a Glimpse window on macOS or Linux/WSL. Not a screenshot. Not a code block. A real HTML application with JavaScript, rendered in a browser-backed window.
 
 <img src="media/dashboard.gif" width="32%"> <img src="media/simulator.gif" width="32%"> <img src="media/diagram.gif" width="32%">
 
-## How it works
+## What changed
 
-On claude.ai, when you ask Claude to visualize something, it calls a tool called `show_widget` that renders HTML inline in the conversation. The HTML streams live - you see cards, charts, and sliders appear as tokens arrive.
+This repo now has two layers:
 
-This extension replicates that system for pi:
+- **Pi compatibility path**: keeps the original `visualize_read_me` + streamed `show_widget` workflow for pi.
+- **Sessionized GenUI path**: exposes the same renderer/runtime as shared TypeScript code plus a minimal MCP-oriented widget lifecycle for Hermes-style integrations.
 
-1. **LLM calls `visualize_read_me`** - loads design guidelines (lazy, only the relevant modules)
-2. **LLM calls `show_widget`** - generates an HTML fragment as a tool call parameter
-3. **Extension intercepts the stream** - opens a [Glimpse](https://github.com/hazat/glimpse) window and feeds partial HTML as tokens arrive
-4. **[morphdom](https://github.com/patrick-steele-idem/morphdom) diffs the DOM** - new elements fade in smoothly, unchanged elements stay untouched
-5. **Scripts execute on completion** - Chart.js, D3, Three.js, anything from CDN
+That means the renderer was **not** rewritten. The working browser-backed runtime was extracted and reused.
 
-The widget window has full browser capabilities and a bidirectional bridge - `window.glimpse.send(data)` sends data back to the agent. On macOS, Glimpse uses WKWebView; on Linux/WSL, it uses a supported browser backend such as Chromium or WebKitGTK.
+## Architecture
+
+### 1. `genui-core`
+
+Shared TypeScript runtime for generative UI, independent from Pi registration hooks.
+
+It owns:
+- WSL/backend resolution
+- Glimpse loading
+- HTML/SVG shell generation
+- morphdom patch path
+- widget open / patch / close lifecycle
+- session-scoped widget registry
+- buffered widget event delivery
+- compatibility helpers for Pi-style `show_widget`
+
+### 2. `hermes-genui-mcp`
+
+A minimal session-based MCP-facing service layer over `genui-core`.
+
+Public tool surface:
+- `visualize_read_me`
+- `open_widget`
+- `patch_widget`
+- `close_widget`
+- `widget_event_poll`
+
+Resources and prompts stay off by default.
+
+### 3. `hermes-genui-plugin`
+
+Thin Hermes session glue.
+
+It only handles:
+- bundled `SKILL.md`
+- ephemeral context injection before LLM calls
+- session tracking for `visualize_read_me`
+- orphan cleanup on session end
+
+It does **not** contain renderer logic.
+
+### 4. Pi extension wrapper
+
+`.pi/extensions/generative-ui/index.ts` remains the Pi-specific entrypoint. It now delegates runtime behavior to `genui-core` while preserving the original Pi streaming UX.
+
+## Pi streaming path
+
+The Pi extension still supports the original streaming experience:
+
+1. `visualize_read_me`
+2. `show_widget`
+3. streaming interception of `toolcall_start` / `toolcall_delta` / `toolcall_end`
+4. early shell open in Glimpse
+5. morphdom patching as content arrives
+6. final script execution when the widget completes
+
+So the repo now supports both:
+- **Pi live streaming widgets**, and
+- **sessionized lifecycle-driven widgets for Hermes/MCP**
 
 ## Install
 
@@ -28,9 +83,9 @@ pi install git:github.com/Michaelliv/pi-generative-ui
 
 > macOS and Linux/WSL are supported through Glimpse.
 >
-> **macOS:** uses WKWebView and requires the Swift toolchain (ships with Xcode or Xcode Command Line Tools).
+> **macOS:** uses WKWebView and requires the Swift toolchain.
 >
-> **WSL/Linux:** requires Node 18+, GUI support, and a Glimpse-supported browser backend. For WSL, use WSL2 with WSLg enabled; the extension defaults `GLIMPSE_BACKEND=chromium` on WSL unless you already set `GLIMPSE_BACKEND` yourself. A Chromium-based browser must be visible inside the Linux environment, or you can point Glimpse at one explicitly with `GLIMPSE_CHROME_PATH=/path/to/chrome`.
+> **WSL/Linux:** requires Node 18+, GUI support, and a Glimpse-supported browser backend. On WSL, the runtime defaults `GLIMPSE_BACKEND=chromium` unless you already set it.
 
 ## Running in WSL
 
@@ -42,11 +97,9 @@ Use the extension from inside your WSL Linux environment, not from Windows Power
 - WSLg enabled so Linux GUI apps can open windows
 - Node.js 18+
 - pi installed in the Linux environment
-- a Chromium-based browser visible from Linux (for example `chromium`, `google-chrome`, or another compatible executable)
+- a Chromium-based browser visible from Linux
 
 ### Setup inside WSL
-
-Verify the basics first:
 
 ```bash
 uname -a
@@ -54,7 +107,7 @@ node --version
 which chromium || which google-chrome || which google-chrome-stable
 ```
 
-If browser auto-detection fails later, you can point Glimpse at a specific executable:
+If browser auto-detection fails, point Glimpse at a specific executable:
 
 ```bash
 export GLIMPSE_CHROME_PATH=/usr/bin/chromium
@@ -62,29 +115,18 @@ export GLIMPSE_CHROME_PATH=/usr/bin/chromium
 
 ### Install inside WSL
 
-From the project directory in WSL:
-
 ```bash
 npm install
-```
-
-Install the extension in pi:
-
-```bash
 pi install git:github.com/Michaelliv/pi-generative-ui
 ```
 
 ### Backend setup on WSL
 
-The extension defaults to Chromium on WSL when `GLIMPSE_BACKEND` is not already set.
-
-To force that behavior explicitly in your current shell, run:
-
 ```bash
 export GLIMPSE_BACKEND=chromium
 ```
 
-If you want that to persist across shells, add it to your shell profile:
+Persist it if you want:
 
 ```bash
 echo 'export GLIMPSE_BACKEND=chromium' >> ~/.bashrc
@@ -92,129 +134,91 @@ echo 'export GLIMPSE_BACKEND=chromium' >> ~/.bashrc
 
 ### Test in WSL
 
-Run the repo checks from WSL:
+```bash
+npm test
+```
+
+## Usage
+
+### In pi
+
+Ask pi to visualize something:
+
+- `Show me how compound interest works`
+- `Visualize the architecture of a transformer`
+- `Create a dashboard for this data`
+- `Draw a particle system`
+
+The extension adds two tools that the LLM calls automatically:
+- `visualize_read_me`
+- `show_widget`
+
+### In Hermes / MCP-style integrations
+
+Drive the sessionized lifecycle directly:
+
+1. `visualize_read_me`
+2. `open_widget`
+3. `patch_widget`
+4. `widget_event_poll` when needed
+5. `close_widget`
+
+This path intentionally does **not** depend on token-by-token partial tool-argument interception.
+
+## Project structure
+
+```text
+pi-generative-ui/
+├── .pi/extensions/generative-ui/
+│   ├── index.ts
+│   ├── guidelines.ts
+│   ├── svg-styles.ts
+│   └── claude-guidelines/
+├── packages/
+│   ├── genui-core/
+│   │   └── src/
+│   │       ├── index.ts
+│   │       ├── platform.ts
+│   │       ├── runtime.ts
+│   │       ├── shell.ts
+│   │       ├── types.ts
+│   │       ├── guidelines.ts
+│   │       └── svg-styles.ts
+│   ├── hermes-genui-mcp/
+│   │   └── src/index.ts
+│   └── hermes-genui-plugin/
+│       ├── SKILL.md
+│       └── src/index.ts
+├── tests/
+│   ├── unit/
+│   ├── integration/
+│   └── fixtures/golden/
+└── package.json
+```
+
+## Tests
+
+The repo now includes regression coverage for:
+- Pi-independent `genui-core`
+- shell + morphdom behavior
+- WSL backend resolution
+- sessionized MCP tool surface
+- widget lifecycle open / patch / close
+- widget event polling
+- Hermes plugin skill + cleanup behavior
+
+Run them with:
 
 ```bash
 npm test
 ```
 
-If you changed environment variables such as `GLIMPSE_BACKEND` or `GLIMPSE_CHROME_PATH`, restart your shell or re-source your profile before testing.
-
-### Run in WSL
-
-Start pi from the WSL shell after exporting any backend variables you want:
-
-```bash
-export GLIMPSE_BACKEND=chromium
-pi
-```
-
-Then ask for a simple widget such as:
-
-- `Show me how compound interest works`
-- `Visualize the architecture of a transformer`
-
-A separate Glimpse window should open through WSLg.
-
-### Common issues
-
-- **No window opens:** verify WSLg is working and that you launched `pi` from the WSL Linux shell.
-- **Backend error mentioning Chromium/Chrome not found:** install a Linux-visible Chromium-based browser or set `GLIMPSE_CHROME_PATH`.
-- **You already set `GLIMPSE_BACKEND`:** the extension will not override your existing value.
-- **`npm test` passes but widgets still fail:** the static checks passed, but the Glimpse runtime still needs a working WSLg GUI path and browser backend.
-- **Widgets still fail after setup:** restart the pi session after changing backend-related environment variables.
-
-## Usage
-
-Just ask pi to visualize things. The extension adds two tools that the LLM calls automatically:
-
-- **"Show me how compound interest works"** → interactive explainer with sliders and Chart.js
-- **"Visualize the architecture of a transformer"** → SVG diagram with labeled components
-- **"Create a dashboard for this data"** → metric cards, charts, tables
-- **"Draw a particle system"** → Canvas animation
-
-The LLM decides when to use widgets vs text based on the request. Explanatory/visual requests trigger widgets; code/text requests stay in the terminal.
-
-## What's inside
-
-### The guidelines - extracted from Claude
-
-The design guidelines aren't hand-written. They're **extracted verbatim from claude.ai**.
-
-Here's the trick: you can export any claude.ai conversation as JSON. The export includes full tool call payloads - including the complete `read_me` tool results containing Anthropic's actual design system. 72K of production rules covering typography, color palettes, streaming-safe CSS patterns, Chart.js configuration, SVG diagram engineering, and more.
-
-We triggered `read_me` with each module combination, exported the conversation, parsed the JSON, split the responses into deduplicated sections, and verified byte-level accuracy against the originals. The result: our LLM gets the exact same instructions Claude gets on claude.ai.
-
-Five modules, loaded on demand:
-
-| Module        | Size | What it covers                                        |
-| ------------- | ---- | ----------------------------------------------------- |
-| `interactive` | 19KB | Sliders, metric cards, live calculations              |
-| `chart`       | 22KB | Chart.js setup, custom legends, number formatting     |
-| `mockup`      | 19KB | UI component tokens, cards, forms, skeleton loading   |
-| `art`         | 17KB | SVG illustration, Canvas animation, creative patterns |
-| `diagram`     | 59KB | Flowcharts, architecture diagrams, SVG arrow systems  |
-
-### Streaming architecture
-
-The extension intercepts pi's streaming events (`toolcall_start` / `toolcall_delta` / `toolcall_end`) to render the widget live as tokens arrive:
-
-```
-toolcall_start    → initialize streaming state
-toolcall_delta    → debounce 150ms, open window, morphdom diff
-toolcall_end      → final diff + execute <script> tags
-execute()         → reuse window, wait for interaction or close
-```
-
-Key details:
-
-- **Shell HTML + JS eval** - window opens with an empty shell; content injected via `win.send()`, not `setHTML()`, to avoid full-page flashes
-- **morphdom DOM diffing** - only changed nodes update; new nodes get a 0.3s fade-in animation
-- **pi-ai's `parseStreamingJson`** - no need for a partial JSON parser; pi already provides parsed `arguments` on every delta
-- **150ms debounce** - batches rapid token updates for smooth visual rendering
-- **Dark mode by default** - `#1a1a1a` background, tuned for Glimpse's browser-backed rendering
-
-### Glimpse
-
-[Glimpse](https://github.com/hazat/glimpse) is the renderer used by this extension. On macOS it opens a WKWebView window; on Linux/WSL it can use supported browser backends such as Chromium or WebKitGTK, depending on your environment.
-
-On macOS, the Swift source compiles automatically on `npm install` via `postinstall`. On Linux/WSL, make sure the selected backend is available from inside the Linux environment before running widgets.
-
-## Project structure
-
-```
-pi-generative-ui/
-├── .pi/extensions/generative-ui/
-│   ├── index.ts              # Extension: tools, streaming, Glimpse integration
-│   ├── guidelines.ts         # 72K of verbatim claude.ai design guidelines
-│   └── claude-guidelines/    # Raw extracted markdown (reference)
-│       ├── art.md
-│       ├── chart.md
-│       ├── diagram.md
-│       ├── interactive.md
-│       ├── mockup.md
-│       └── sections/         # Deduplicated sections
-└── package.json              # pi-package manifest
-```
-
-## How the guidelines were extracted
-
-1. Start a conversation on claude.ai that triggers `show_widget`
-2. Call `read_me` with each module combination (`art`, `chart`, `diagram`, `interactive`, `mockup`)
-3. Export the conversation as JSON from claude.ai settings
-4. Parse the JSON - every `tool_result` for `visualize:read_me` contains the complete guidelines
-5. Split each response at `##` heading boundaries
-6. Deduplicate shared sections (e.g., "Color palette" appears in chart, mockup, interactive, diagram)
-7. Verify reconstruction matches the originals (4/5 exact, 1 has a single whitespace char difference)
-
-The raw `read_me` responses are preserved in [`claude-guidelines/`](.pi/extensions/generative-ui/claude-guidelines/) - the original markdown exactly as claude.ai returned it, before splitting and deduplication. The conversation export JSON is not included in this repo.
-
 ## Credits
 
-- [pi](https://github.com/badlogic/pi-mono) - the extensible coding agent that makes this possible
-- [Glimpse](https://github.com/hazat/glimpse) - cross-platform browser-backed windows for streamed widgets
-- [morphdom](https://github.com/patrick-steele-idem/morphdom) - DOM diffing for smooth streaming
-- Anthropic - for building the generative UI system we reverse-engineered
+- [pi](https://github.com/badlogic/pi-mono)
+- [Glimpse](https://github.com/hazat/glimpse)
+- [morphdom](https://github.com/patrick-steele-idem/morphdom)
+- Anthropic
 
 ## License
 

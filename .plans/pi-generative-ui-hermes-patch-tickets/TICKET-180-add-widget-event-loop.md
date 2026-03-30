@@ -2,7 +2,7 @@
 ticket_id: "tkt_genui_widget_event_loop"
 title: "Add widget-to-Hermes event delivery after core rendering is stable"
 agent: "codex"
-done: false
+done: true
 goal: "Interactive widgets can send events back into Hermes through an explicit event tool after the base rendering path is working."
 ---
 

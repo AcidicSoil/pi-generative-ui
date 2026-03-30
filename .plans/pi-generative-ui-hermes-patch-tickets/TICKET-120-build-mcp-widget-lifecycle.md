@@ -2,7 +2,7 @@
 ticket_id: "tkt_genui_mcp_lifecycle"
 title: "Expose GenUI as a session-based MCP widget service"
 agent: "codex"
-done: false
+done: true
 goal: "Hermes can drive the extracted GenUI runtime through a minimal MCP tool surface built around sessionized widget lifecycle calls."
 ---
 

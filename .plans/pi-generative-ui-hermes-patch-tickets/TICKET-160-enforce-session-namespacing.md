@@ -2,7 +2,7 @@
 ticket_id: "tkt_genui_session_namespace"
 title: "Map each Hermes session to an isolated GenUI session namespace"
 agent: "codex"
-done: false
+done: true
 goal: "Each Hermes session has its own GenUI session namespace so widget state is isolated and orphan handling is predictable."
 ---
 

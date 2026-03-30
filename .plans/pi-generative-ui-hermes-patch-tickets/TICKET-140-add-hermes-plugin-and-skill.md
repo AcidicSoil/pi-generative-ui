@@ -2,7 +2,7 @@
 ticket_id: "tkt_genui_hermes_plugin_skill"
 title: "Add thin Hermes session glue with a bundled GenUI skill"
 agent: "codex"
-done: false
+done: true
 goal: "Hermes has a minimal plugin and bundled skill that shape GenUI behavior without moving rendering logic into the plugin."
 ---
 

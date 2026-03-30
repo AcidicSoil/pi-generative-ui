@@ -1,4 +1,4 @@
-import { SVG_STYLES } from "../../../../.pi/extensions/generative-ui/svg-styles.js";
+import { SVG_STYLES } from "./svg-styles.js";
 
 export function shellHTML(): string {
   return `<!DOCTYPE html><html><head><meta charset="utf-8">
@@ -51,7 +51,6 @@ export function wrapHTML(code: string, isSVG = false): string {
 <body style="margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#1a1a1a;color:#e0e0e0;">
 ${code}</body></html>`;
   }
-
   return `<!DOCTYPE html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <style>*{box-sizing:border-box}body{margin:0;padding:1rem;font-family:system-ui,-apple-system,sans-serif;background:#1a1a1a;color:#e0e0e0}${SVG_STYLES}</style>

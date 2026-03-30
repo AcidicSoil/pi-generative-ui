@@ -3,13 +3,11 @@ import { existsSync, readFileSync } from "node:fs";
 export function isWSL(): boolean {
   if (process.platform !== "linux") return false;
   if (process.env.WSL_DISTRO_NAME || process.env.WSL_INTEROP) return true;
-
   try {
     if (existsSync("/proc/version")) {
       return /microsoft/i.test(readFileSync("/proc/version", "utf8"));
     }
   } catch {}
-
   return false;
 }
 

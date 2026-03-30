@@ -2,7 +2,7 @@
 ticket_id: "tkt_genui_runtime_extract"
 title: "Extract a Pi-independent GenUI runtime module"
 agent: "codex"
-done: false
+done: true
 goal: "The renderer/runtime needed for generative UI exists as shared TypeScript code that no longer depends on Pi integration hooks."
 ---
 
