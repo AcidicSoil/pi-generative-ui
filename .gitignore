@@ -4,3 +4,6 @@ docs/
 .archived
 .tmp-tests/
 skills
+.archived
+.ecc-hooks-disable
+.ecc-hooks-disable.bak
